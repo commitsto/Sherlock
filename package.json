@@ -1,9 +1,9 @@
 {
   "name": "sherlockjs",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "author": "Neil Gupta",
   "description": "Natural-language event parser for Javascript.",
-  "main": "sherlock.js",
+  "main": "src/sherlock.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/neilgupta/Sherlock.git"
