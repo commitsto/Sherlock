@@ -40,7 +40,7 @@
     "babel-preset-es2015-node6": "^0.4.0",
     "babel-preset-stage-1": "^6.24.1",
     "babel-register": "^6.26.0",
-    "bdd-lazy-var": "^2.2.3",
+    "bdd-lazy-var": "^2.4.2",
     "chai": "^4.1.2",
     "chai-autoload-plugins": "^0.1.0",
     "chai-datetime": "^1.5.0",
