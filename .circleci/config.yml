@@ -1,0 +1,27 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: commitsto/express
+    working_directory: ~/sherlock
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: npm test
+      - run: npm run test:coverage
+      - run: npx codecov
+      - run:
+          name: CodeClimate
+          command: |
+            cc-test-reporter format-coverage --input-type=lcov tmp/test-results/coverage.lcov
+            cc-test-reporter upload-coverage
+      - store_test_results:
+          path: tmp/test-results
