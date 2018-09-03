@@ -156,5 +156,19 @@ export default (currentTime) => {
 
       itBehavesLike('a parsed entry');
     });
+
+    context('when the input is "today"', () => {
+      def('input', 'today');
+
+      const start = new Date(currentTime);
+      start.setHours(0, 0, 0, 0);
+
+      def('title', null);
+      def('startDate', () => start);
+      def('endDate', () => null);
+      def('isAllDay', true);
+
+      itBehavesLike('a parsed entry');
+    });
   });
 };

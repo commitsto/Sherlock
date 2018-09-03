@@ -62,15 +62,15 @@ describe('Sherlock', () => {
       itBehavesLike('Sherlock', timeToday(0, 0));
     });
 
-    context('and the current time is 0:01', () => {
+    context('and the current time is 00:01', () => {
       itBehavesLike('Sherlock', timeToday(0, 1));
     });
 
-    context('and the current time is 2:00', () => {
+    context('and the current time is 02:00', () => {
       itBehavesLike('Sherlock', timeToday(2, 0));
     });
 
-    context('and the current time is 6:00', () => {
+    context('and the current time is 06:00', () => {
       itBehavesLike('Sherlock', timeToday(6, 0));
     });
 

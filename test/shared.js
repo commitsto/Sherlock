@@ -43,4 +43,92 @@ export default (currentTime) => {
   //
   //   itBehavesLike('a parsed entry');
   // });
+
+  context('when the input is "0:00"', () => {
+    def('input', '0:00');
+
+    def('title', '0:00');
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is "12:0 A.M."', () => {
+    def('input', '12:0 A.M.');
+
+    def('title', '12:0 A.M.');
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is "02:0 A.M."', () => {
+    def('input', '02:0 A.M.');
+
+    def('title', '02:0 A.M.');
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is "ahskjhdsfkhasd."', () => {
+    def('input', 'ahskjhdsfkhasd.');
+
+    def('title', 'ahskjhdsfkhasd.');
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is "-"', () => {
+    def('input', '-');
+
+    def('title', null);
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is ""', () => {
+    def('input', '');
+
+    def('title', null);
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is " "', () => {
+    def('input', ' ');
+
+    def('title', null);
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
+
+  context('when the input is null', () => {
+    def('input', null);
+
+    def('title', null);
+    def('startDate', () => null);
+    def('endDate', () => null);
+    def('isAllDay', false);
+
+    itBehavesLike('a parsed entry');
+  });
 };

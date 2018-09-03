@@ -449,5 +449,20 @@ export default (currentTime) => {
 
       itBehavesLike('a parsed entry');
     });
+
+    context('when the input is "Homework was on Jan 2"', () => {
+      def('input', 'Homework was on Jan 2');
+
+      const start = new Date(currentTime);
+      start.setHours(0, 0, 0, 0);
+      start.setMonth(0, 2);
+
+      def('title', 'Homework');
+      def('startDate', () => start);
+      def('endDate', () => null);
+      def('isAllDay', true);
+
+      itBehavesLike('a parsed entry');
+    });
   });
 };

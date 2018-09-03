@@ -2,6 +2,24 @@ import { monthDiff } from './utils';
 
 export default (currentTime) => {
   describe('date ranges', () => {
+    context('when the input is "Event starts today ends within two days."', () => {
+      def('input', 'Event starts today ends within two days.');
+
+      const start = new Date(currentTime);
+      const end = new Date(currentTime);
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      end.setDate(start.getDate() + 2);
+
+      def('title', 'Event');
+      def('startDate', () => start);
+      def('endDate', () => end);
+      def('isAllDay', true);
+
+      itBehavesLike('a parsed entry');
+    });
+
     context('when a date range is given', () => {
       def('input', 'dec 1st at 9am through dec fifth 8pm');
 
@@ -14,6 +32,51 @@ export default (currentTime) => {
         $endDate.setFullYear($endDate.getFullYear() + 1);
         $startDate.setFullYear($startDate.getFullYear() + 1);
       }
+
+      itBehavesLike('a parsed entry');
+    });
+
+    context('when the input is "dec 1 at 3pm - dec 11"', () => {
+      def('input', 'dec 1 at 3pm - dec 11');
+
+      const now = new Date(currentTime);
+      const start = new Date(now.getFullYear(), 11, 1, 15);
+      const end = new Date(now.getFullYear(), 11, 11, 15);
+
+      if (end < now && monthDiff(end, now) >= 3) {
+        end.setFullYear(end.getFullYear() + 1);
+        start.setFullYear(start.getFullYear() + 1);
+      }
+
+      def('title', null);
+      def('startDate', () => start);
+      def('endDate', () => end);
+      def('isAllDay', false);
+
+      itBehavesLike('a parsed entry');
+    });
+
+    context('when the input is "on the 5th to the ninth, we shall eat."', () => {
+      def('input', 'on the 5th to the ninth, we shall eat.');
+
+      const now = new Date(currentTime);
+      const start = new Date(currentTime);
+      const end = new Date(currentTime);
+
+      start.setDate(5);
+      end.setDate(9);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      now.setHours(0, 0, 0, 0);
+      if (end < now) {
+        end.setMonth(end.getMonth() + 1);
+        start.setMonth(start.getMonth() + 1);
+      }
+
+      def('title', 'we shall eat.');
+      def('startDate', () => start);
+      def('endDate', () => end);
+      def('isAllDay', true);
 
       itBehavesLike('a parsed entry');
     });
@@ -504,6 +567,22 @@ export default (currentTime) => {
       }
 
       def('title', null);
+      def('startDate', () => start);
+      def('endDate', () => end);
+      def('isAllDay', false);
+
+      itBehavesLike('a parsed entry');
+    });
+
+    context('when the input is "the party goes from midnight to noon"', () => {
+      def('input', 'the party goes from midnight to noon');
+      const start = new Date(currentTime);
+      const end = new Date(currentTime);
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(12, 0, 0, 0);
+
+      def('title', 'the party goes');
       def('startDate', () => start);
       def('endDate', () => end);
       def('isAllDay', false);
