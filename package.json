@@ -21,7 +21,7 @@
     "eslint": "eslint ./",
     "eslint:fix": "eslint ./ --fix",
     "build": "babel src --out-dir dist",
-    "test": "MOCHA_FILE=tmp/test-results/mocha/results.xml NODE_ENV=test nyc mocha --require chai-autoload-plugins -u bdd-lazy-var/global -R mocha-multi --reporter-options dot=-,mocha-junit-reporter=- ./test/**/*",
+    "test": "MOCHA_FILE=tmp/test-results/mocha/results.xml NODE_ENV=test nyc mocha --require chai-autoload-plugins -u bdd-lazy-var/global -R mocha-multi --reporter-options dot=-,mocha-junit-reporter=- ./test/sherlock.js",
     "test:watch": "npm test -- --watch",
     "test:coverage": "nyc report --reporter=text-lcov > tmp/test-results/coverage.lcov"
   },
