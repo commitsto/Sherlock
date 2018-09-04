@@ -3,3 +3,5 @@ logo.svg
 logotype.svg
 tests.html
 watson.js
+dist/
+tmp/

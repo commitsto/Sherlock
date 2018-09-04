@@ -357,14 +357,14 @@ class Sherlock {
     // parse date
     if (dateMatch = this.matchDate(strNummed, time, startTime)) {
       strNummed = strNummed.replace(new RegExp(dateMatch), '');
-      str = str.replace(new RegExp(helpers.numToStr(dateMatch)), '$DATE$');
+      str = str.replace(new RegExp(Watson.numToStr(dateMatch)), '$DATE$');
     }
 
     logger.log('time after', time)
 
     // parse time
     if (timeMatch = this.matchTime(strNummed, time, startTime)) {
-      str = str.replace(new RegExp(helpers.numToStr(timeMatch)), '$TIME$');
+      str = str.replace(new RegExp(Watson.numToStr(timeMatch)), '$TIME$');
     }
 
     ret.eventTitle = str;
