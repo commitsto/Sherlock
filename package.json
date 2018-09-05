@@ -26,6 +26,10 @@
     "test:coverage": "nyc report --reporter=text-lcov > tmp/test-results/coverage.lcov"
   },
   "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/polyfill": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
     "babel-plugin-istanbul": "^4.1.6",
     "bdd-lazy-var": "^2.4.2",
     "chai": "^4.1.2",
