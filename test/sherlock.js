@@ -1,4 +1,4 @@
-import Sherlock from './shared';
+import SherlockTestSuite from './shared';
 
 const timeToday = (hours, minutes) => {
   const d = new Date();
@@ -7,7 +7,7 @@ const timeToday = (hours, minutes) => {
 };
 
 describe('Sherlock', () => {
-  sharedExamplesFor('Sherlock', Sherlock);
+  sharedExamplesFor('Sherlock', SherlockTestSuite);
 
   context('when the current time is "Dec 03, 2012 04:35:00"', () => {
     itBehavesLike('Sherlock', new Date('Dec 03, 2012 04:35:00'));

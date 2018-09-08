@@ -22,6 +22,10 @@ var _watson = _interopRequireDefault(require("./watson"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -30,53 +34,59 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var Sherlock =
 /*#__PURE__*/
 function () {
   function Sherlock() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$config = _ref.config,
+        config = _ref$config === void 0 ? {} : _ref$config;
+
     _classCallCheck(this, Sherlock);
 
-    _defineProperty(this, "nowDate", new Date());
-
-    _defineProperty(this, "patterns", _watson.default.patterns);
-
-    _defineProperty(this, "_config", {
-      disableRanges: false,
-      // FIXME
-      debug: false
-    });
-
-    _defineProperty(this, "logger", _watson.default.logger(this._config.debug));
+    this.config(config);
+    this.logger.debug('new Sherlock!', this);
   }
 
   _createClass(Sherlock, [{
     key: "config",
     value: function config(newConfig) {
-      console.log('Sherlock config', this._config, newConfig);
-
       if (_typeof(newConfig) === 'object') {
-        this._config = newConfig; // FIXME
-
-        this.logger = _watson.default.logger(this._config.debug); // FIXME
+        var _newConfig$currentTim = newConfig.currentTime,
+            currentTime = _newConfig$currentTim === void 0 ? new Date() : _newConfig$currentTim,
+            _newConfig$debug = newConfig.debug,
+            debug = _newConfig$debug === void 0 ? false : _newConfig$debug,
+            _newConfig$disableRan = newConfig.disableRanges,
+            disableRanges = _newConfig$disableRan === void 0 ? false : _newConfig$disableRan,
+            _newConfig$patterns = newConfig.patterns,
+            patterns = _newConfig$patterns === void 0 ? {} : _newConfig$patterns;
+        this._config = _objectSpread({}, this._config, {
+          currentTime: currentTime,
+          debug: debug,
+          disableRanges: disableRanges,
+          // FIXME implement this
+          logger: _watson.default.log(debug),
+          patterns: Object.keys(patterns).length !== 0 ? patterns : _watson.default.patterns
+        });
+        this.logger = this._config.logger; // FIXME
       }
 
-      return null;
-    } // Sets what time Sherlock thinks it is right now, regardless of system time.
-    // Useful for debugging different times.
+      this.logger.debug('Sherlock config', this._config);
+      return this._config;
+    } // Shortcut to sets what time Sherlock thinks it is right now,
+    // regardless of system time. Useful for debugging different times.
     // Pass a Date object to set 'now' to a time of your choosing.
     // Don't pass in anything to reset 'now' to the real time.
 
   }, {
     key: "_setNow",
     value: function _setNow(newDate) {
-      this.nowDate = newDate;
+      this._config.currentTime = newDate;
     }
   }, {
     key: "getNow",
     value: function getNow() {
-      return new Date(this.nowDate.getTime());
+      return new Date(this._config.currentTime.getTime());
     }
   }, {
     key: "matchTime",
@@ -87,8 +97,9 @@ function () {
           matchedHour,
           matchedMin,
           matchedHasMeridian;
+      var patterns = this._config.patterns;
 
-      if (match = str.match(new RegExp(this.patterns.explicitTime.source, 'g'))) {
+      if (match = str.match(new RegExp(patterns.explicitTime.source, 'g'))) {
         // if multiple matches found, pick the best one
         match = match.sort(function (a, b) {
           var aScore = a.trim().length,
@@ -109,7 +120,7 @@ function () {
           matchConfidence = 0;
         } else {
           matchConfidence = match.length;
-          match = match.match(this.patterns.explicitTime);
+          match = match.match(patterns.explicitTime);
           var hour = parseInt(match[1]),
               min = match[2] || 0,
               meridian = match[3];
@@ -148,7 +159,7 @@ function () {
       };
 
       if (matchConfidence < 4) {
-        if (match = str.match(this.patterns.inRelativeTime)) {
+        if (match = str.match(patterns.inRelativeTime)) {
           // if we matched 'a' or 'an', set the number to 1
           if (isNaN(match[1])) {
             match[1] = 1;
@@ -170,7 +181,7 @@ function () {
             default:
               return useLowConfidenceMatchedTime();
           }
-        } else if (match = str.match(this.patterns.inMilliTime)) {
+        } else if (match = str.match(patterns.inMilliTime)) {
           if (match[3]) {
             match[1] = parseInt(match[1]) * -1;
           }
@@ -187,7 +198,7 @@ function () {
             default:
               return useLowConfidenceMatchedTime();
           }
-        } else if (match = str.match(this.patterns.midtime)) {
+        } else if (match = str.match(patterns.midtime)) {
           switch (match[1]) {
             case 'dawn':
               time.setHours(5, 0, 0);
@@ -228,7 +239,7 @@ function () {
             default:
               return useLowConfidenceMatchedTime();
           }
-        } else if (match = str.match(this.patterns.internationalTime)) {
+        } else if (match = str.match(patterns.internationalTime)) {
           time.setHours(match[1], match[2], 0);
           time.hasMeridian = true;
           return match[0];
@@ -243,9 +254,10 @@ function () {
     key: "matchDate",
     value: function matchDate(str, time, startTime) {
       this.logger.debug('matchDate', time, str);
+      var patterns = this._config.patterns;
       var match;
 
-      if (match = str.match(this.patterns.monthDay)) {
+      if (match = str.match(patterns.monthDay)) {
         if (match[3]) {
           time.setFullYear(match[3], _watson.default.changeMonth(match[1]), match[2]);
           time.hasYear = true;
@@ -254,7 +266,7 @@ function () {
         }
 
         return match[0];
-      } else if (match = str.match(this.patterns.dayMonth)) {
+      } else if (match = str.match(patterns.dayMonth)) {
         if (match[3]) {
           time.setFullYear(match[3], _watson.default.changeMonth(match[2]), match[1]);
           time.hasYear = true;
@@ -263,7 +275,7 @@ function () {
         }
 
         return match[0];
-      } else if (match = str.match(this.patterns.shortForm)) {
+      } else if (match = str.match(patterns.shortForm)) {
         var yearStr = match[3],
             year = null;
 
@@ -284,8 +296,8 @@ function () {
         }
 
         return match[0];
-      } else if (match = str.match(this.patterns.oxtDays) || str.match(this.patterns.oxtDaysUK)) {
-        this.logger.debug('HERE!', this.patterns.oxtDays, time, match);
+      } else if (match = str.match(patterns.oxtDays) || str.match(patterns.oxtDaysUK)) {
+        this.logger.debug('HERE!', patterns.oxtDays, time, match);
 
         switch (match[1].substr(0, 3)) {
           case 'sun':
@@ -326,7 +338,7 @@ function () {
           default:
             return false;
         }
-      } else if (match = str.match(this.patterns.weekdays)) {
+      } else if (match = str.match(patterns.weekdays)) {
         switch (match[2].substr(0, 3)) {
           case 'sun':
             _watson.default.changeDay(time, 0, match[1]);
@@ -366,25 +378,25 @@ function () {
           default:
             return false;
         }
-      } else if (match = str.match(this.patterns.inRelativeDateFromRelativeDate)) {
+      } else if (match = str.match(patterns.inRelativeDateFromRelativeDate)) {
         if (_watson.default.relativeDateMatcher(match[4], time, this.getNow()) && _watson.default.inRelativeDateMatcher(match[1], match[2], match[3], time)) {
           return match[0];
         }
 
         return false;
-      } else if (match = str.match(this.patterns.relativeDate)) {
+      } else if (match = str.match(patterns.relativeDate)) {
         if (_watson.default.relativeDateMatcher(match[1], time, this.getNow())) {
           return match[0];
         }
 
         return false;
-      } else if (match = str.match(this.patterns.inRelativeDate)) {
+      } else if (match = str.match(patterns.inRelativeDate)) {
         if (_watson.default.inRelativeDateMatcher(match[1], match[2], match[3], time)) {
           return match[0];
         }
 
         return false;
-      } else if (match = str.match(new RegExp(this.patterns.days, 'g'))) {
+      } else if (match = str.match(new RegExp(patterns.days, 'g'))) {
         // if multiple matches found, pick the best one
         match = match.sort(function (a, b) {
           return b.trim().length - a.trim().length;
@@ -401,7 +413,7 @@ function () {
             return false;
           }
 
-        match = match.match(this.patterns.daysOnly);
+        match = match.match(patterns.daysOnly);
         var month = time.getMonth(),
             day = match[1]; // if this date is in the past, move it to next month
 
@@ -420,6 +432,7 @@ function () {
     key: "makeAdjustments",
     value: function makeAdjustments(start, end, isAllDay, str, ret) {
       var now = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : this.getNow();
+      var patterns = this._config.patterns;
 
       if (end) {
         if (start > end && end > now && _watson.default.isSameDay(start, end) && _watson.default.isSameDay(start, now)) {
@@ -465,7 +478,7 @@ function () {
         } // check for open ranges (more than...)
 
 
-        if (ret.eventTitle.match(this.patterns.more_than_comparator)) {
+        if (ret.eventTitle.match(patterns.more_than_comparator)) {
           if (start <= now && (!_watson.default.isSameDay(start, now) || str.match(/ago|old\b/)) && !ret.eventTitle.match(/after|newer/i) || ret.eventTitle.match(/older|before/i)) {
             ret.endDate = new Date(start.getTime());
             ret.startDate = new Date(1900, 0, 1, 0, 0, 0, 0);
@@ -473,9 +486,9 @@ function () {
             ret.endDate = new Date(3000, 0, 1, 0, 0, 0, 0);
           }
 
-          ret.eventTitle = ret.eventTitle.replace(this.patterns.more_than_comparator, '');
+          ret.eventTitle = ret.eventTitle.replace(patterns.more_than_comparator, '');
         } // check for closed ranges (less than...)
-        else if (ret.eventTitle.match(this.patterns.less_than_comparator)) {
+        else if (ret.eventTitle.match(patterns.less_than_comparator)) {
             if (start <= now) {
               if (_watson.default.isSameDay(start, now) && !str.match(/ago|old\b/)) {
                 // make an exception for "less than today" or "less than now"
@@ -489,7 +502,7 @@ function () {
               ret.startDate = new Date(now.getTime());
             }
 
-            ret.eventTitle = ret.eventTitle.replace(this.patterns.less_than_comparator, '');
+            ret.eventTitle = ret.eventTitle.replace(patterns.less_than_comparator, '');
           }
       }
 
@@ -531,6 +544,7 @@ function () {
     value: function parse(input) {
       var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       // FIXME config?
+      var patterns = this._config.patterns;
       this.logger.debug('parse', input, opts); // check for null input
 
       if (input === null) input = '';
@@ -545,8 +559,8 @@ function () {
       var ret = {}; // result[1]
       // token the string to start and stop times
 
-      var tokens = opts.disableRanges ? [str.toLowerCase()] : str.toLowerCase().split(this.patterns.rangeSplitters);
-      this.patterns.rangeSplitters.lastIndex = 0; // normalize all dates to 0 milliseconds
+      var tokens = opts.disableRanges ? [str.toLowerCase()] : str.toLowerCase().split(patterns.rangeSplitters);
+      patterns.rangeSplitters.lastIndex = 0; // normalize all dates to 0 milliseconds
 
       date.setMilliseconds(0);
 
@@ -620,7 +634,7 @@ function () {
 
       if (ret.eventTitle) {
         ret.eventTitle = ret.eventTitle.replace(/\$(?:DATE|TIME)\$/g, '');
-        var fillerWords = opts.disableRanges ? this.patterns.fillerWords2 : this.patterns.fillerWords;
+        var fillerWords = opts.disableRanges ? patterns.fillerWords2 : patterns.fillerWords;
         ret.eventTitle = ret.eventTitle.split(fillerWords)[0].trim();
         ret.eventTitle = ret.eventTitle.replace(/(?:^| )(?:\.|-$|by$|in$|at$|from$|on$|starts?$|for$|(?:un)?till?$|!|,|;)+/g, '').replace(/ +/g, ' ').trim();
         var match = str.match(new RegExp(_watson.default.escapeRegExp(ret.eventTitle), 'i'));
@@ -664,15 +678,15 @@ var Watson = function Watson() {
 
 exports.default = Watson;
 
-_defineProperty(Watson, "logger", function (_debug) {
-  console.log('Watson logger', _debug);
+_defineProperty(Watson, "log", function (_debug) {
   return {
     debug: function debug() {
       var _console;
 
       return _debug && (_console = console).log.apply(_console, arguments);
-    } // eslint-disable-line no-console
-
+    },
+    // eslint-disable-line no-console
+    silly: function silly() {}
   };
 });
 
@@ -905,7 +919,7 @@ _defineProperty(Watson, "changeMonth", function (month) {
 });
 
 _defineProperty(Watson, "changeDay", function (time, newDay, hasNext) {
-  Watson.logger().debug('changeDay', time, newDay, hasNext); // FIXME
+  Watson.log().debug('changeDay', time, newDay, hasNext); // FIXME
 
   var diff = 7 - time.getDay() + newDay; // If entering "last saturday" on a Saturday, for example,
   // diff will be 0 when it should be -7
@@ -923,7 +937,7 @@ _defineProperty(Watson, "changeDay", function (time, newDay, hasNext) {
   }
 
   var newTime = time.getDate() + diff;
-  Watson.logger().debug('setDate', diff, newTime); // FIXME
+  Watson.log().debug('setDate', diff, newTime); // FIXME
 
   time.setDate(newTime);
 });

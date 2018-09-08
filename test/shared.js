@@ -1,4 +1,4 @@
-import Sherlock from '../src/sherlock';
+import sherlock from '../src/sherlock';
 
 import parsedEntry from './shared/parsed_entry';
 
@@ -20,7 +20,12 @@ sharedExamplesFor('a slashed date range', slashed);
 
 export default (currentTime) => {
   subject('sherlock', () => {
-    Sherlock._setNow(currentTime);
+    const Sherlock = new sherlock({
+      config: {
+        currentTime,
+        // debug: true,
+      },
+    });
     return Sherlock.parse($input);
   });
 

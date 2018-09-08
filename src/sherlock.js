@@ -6,39 +6,52 @@
 import Watson from './watson';
 
 export default class Sherlock {
-  nowDate = new Date()
-  patterns = Watson.patterns
-  _config = {
-    disableRanges: false, // FIXME
-    debug: false,
+  constructor({ config = {} } = {}) {
+    this.config(config);
+    this.logger.debug('new Sherlock!', this);
   }
-  logger = Watson.logger(this._config.debug)
 
   config(newConfig) {
-    console.log('Sherlock config', this._config, newConfig)
     if (typeof newConfig === 'object') {
-      this._config = newConfig; // FIXME
-      this.logger = Watson.logger(this._config.debug) // FIXME
+      const {
+        currentTime = new Date(),
+        debug = false,
+        disableRanges = false,
+        patterns = {},
+      } = newConfig;
+
+      this._config = {
+        ...this._config,
+        currentTime,
+        debug,
+        disableRanges, // FIXME implement this
+        logger: Watson.log(debug),
+        patterns: Object.keys(patterns).length !== 0 ? patterns : Watson.patterns,
+      };
+      this.logger = this._config.logger; // FIXME
     }
-    return null;
+    this.logger.debug('Sherlock config', this._config);
+    return this._config;
   }
 
-  // Sets what time Sherlock thinks it is right now, regardless of system time.
-  // Useful for debugging different times.
+  // Shortcut to sets what time Sherlock thinks it is right now,
+  // regardless of system time. Useful for debugging different times.
   // Pass a Date object to set 'now' to a time of your choosing.
   // Don't pass in anything to reset 'now' to the real time.
   _setNow(newDate) {
-    this.nowDate = newDate;
+    this._config.currentTime = newDate;
   }
 
   getNow() {
-    return new Date(this.nowDate.getTime());
+    return new Date(this._config.currentTime.getTime());
   }
 
   matchTime(str, time, startTime) {
     let match, matchConfidence = 0, matchedString = false, matchedHour, matchedMin, matchedHasMeridian;
 
-    if (match = str.match(new RegExp(this.patterns.explicitTime.source, 'g'))) {
+    const { patterns } = this._config;
+
+    if (match = str.match(new RegExp(patterns.explicitTime.source, 'g'))) {
       // if multiple matches found, pick the best one
       match = match.sort(function(a, b) {
         let aScore = a.trim().length,
@@ -51,7 +64,7 @@ export default class Sherlock {
 
       if (match.length <= 2 && str.trim().length > 2) {matchConfidence = 0;} else {
         matchConfidence = match.length;
-        match = match.match(this.patterns.explicitTime);
+        match = match.match(patterns.explicitTime);
 
         let hour = parseInt(match[1]),
           min = match[2] || 0,
@@ -84,7 +97,7 @@ export default class Sherlock {
     };
 
     if (matchConfidence < 4) {
-      if (match = str.match(this.patterns.inRelativeTime)) {
+      if (match = str.match(patterns.inRelativeTime)) {
         // if we matched 'a' or 'an', set the number to 1
         if (isNaN(match[1])) {match[1] = 1;}
 
@@ -100,7 +113,7 @@ export default class Sherlock {
           default:
             return useLowConfidenceMatchedTime();
         }
-      } else if (match = str.match(this.patterns.inMilliTime)) {
+      } else if (match = str.match(patterns.inMilliTime)) {
         if (match[3]) {match[1] = parseInt(match[1]) * -1;}
 
         switch (match[2].substring(0, 1)) {
@@ -113,7 +126,7 @@ export default class Sherlock {
           default:
             return useLowConfidenceMatchedTime();
         }
-      } else if (match = str.match(this.patterns.midtime)) {
+      } else if (match = str.match(patterns.midtime)) {
         switch (match[1]) {
           case 'dawn':
             time.setHours(5, 0, 0);
@@ -147,7 +160,7 @@ export default class Sherlock {
           default:
             return useLowConfidenceMatchedTime();
         }
-      } else if (match = str.match(this.patterns.internationalTime)) {
+      } else if (match = str.match(patterns.internationalTime)) {
         time.setHours(match[1], match[2], 0);
         time.hasMeridian = true;
         return match[0];
@@ -158,20 +171,22 @@ export default class Sherlock {
   matchDate(str, time, startTime) {
     this.logger.debug('matchDate', time, str)
 
+    const { patterns } = this._config;
+
     let match;
-    if (match = str.match(this.patterns.monthDay)) {
+    if (match = str.match(patterns.monthDay)) {
       if (match[3]) {
         time.setFullYear(match[3], Watson.changeMonth(match[1]), match[2]);
         time.hasYear = true;
       } else {time.setMonth(Watson.changeMonth(match[1]), match[2]);}
       return match[0];
-    } else if (match = str.match(this.patterns.dayMonth)) {
+    } else if (match = str.match(patterns.dayMonth)) {
       if (match[3]) {
         time.setFullYear(match[3], Watson.changeMonth(match[2]), match[1]);
         time.hasYear = true;
       } else {time.setMonth(Watson.changeMonth(match[2]), match[1]);}
       return match[0];
-    } else if (match = str.match(this.patterns.shortForm)) {
+    } else if (match = str.match(patterns.shortForm)) {
       let yearStr = match[3], year = null;
       if (yearStr) {year = parseInt(yearStr);}
       if (year && yearStr.length < 4)
@@ -182,8 +197,8 @@ export default class Sherlock {
         time.hasYear = true;
       } else {time.setMonth(match[1] - 1, match[2]);}
       return match[0];
-    } else if (match = str.match(this.patterns.oxtDays) || str.match(this.patterns.oxtDaysUK)) {
-      this.logger.debug('HERE!', this.patterns.oxtDays, time, match)
+    } else if (match = str.match(patterns.oxtDays) || str.match(patterns.oxtDaysUK)) {
+      this.logger.debug('HERE!', patterns.oxtDays, time, match)
       switch (match[1].substr(0, 3)) {
         case 'sun':
           Watson.changeDay(time, 0, 'oxt');
@@ -210,7 +225,7 @@ export default class Sherlock {
           return false;
       }
 
-    } else if (match = str.match(this.patterns.weekdays)) {
+    } else if (match = str.match(patterns.weekdays)) {
       switch (match[2].substr(0, 3)) {
         case 'sun':
           Watson.changeDay(time, 0, match[1]);
@@ -236,16 +251,16 @@ export default class Sherlock {
         default:
           return false;
       }
-    } else if (match = str.match(this.patterns.inRelativeDateFromRelativeDate)) {
+    } else if (match = str.match(patterns.inRelativeDateFromRelativeDate)) {
       if (Watson.relativeDateMatcher(match[4], time, this.getNow()) && Watson.inRelativeDateMatcher(match[1], match[2], match[3], time)) {return match[0];}
       return false;
-    } else if (match = str.match(this.patterns.relativeDate)) {
+    } else if (match = str.match(patterns.relativeDate)) {
       if (Watson.relativeDateMatcher(match[1], time, this.getNow())) {return match[0];}
       return false;
-    } else if (match = str.match(this.patterns.inRelativeDate)) {
+    } else if (match = str.match(patterns.inRelativeDate)) {
       if (Watson.inRelativeDateMatcher(match[1], match[2], match[3], time)) {return match[0];}
       return false;
-    } else if (match = str.match(new RegExp(this.patterns.days, 'g'))) {
+    } else if (match = str.match(new RegExp(patterns.days, 'g'))) {
       // if multiple matches found, pick the best one
       match = match.sort(function(a, b) { return b.trim().length - a.trim().length; })[0].trim();
       // check if the possible date match meets our reasonable assumptions...
@@ -262,7 +277,7 @@ export default class Sherlock {
         match.length <= 2))
       // then drop it.
       {return false;}
-      match = match.match(this.patterns.daysOnly);
+      match = match.match(patterns.daysOnly);
 
       let month = time.getMonth(),
         day = match[1];
@@ -277,6 +292,8 @@ export default class Sherlock {
 
   // Make some intelligent assumptions of what was meant, even when given incomplete information
   makeAdjustments(start, end, isAllDay, str, ret, now = this.getNow()) {
+    const { patterns } = this._config;
+
     if (end) {
       if (start > end && end > now && Watson.isSameDay(start, end) && Watson.isSameDay(start, now)) {
         if (start.hasMeridian)
@@ -314,7 +331,7 @@ export default class Sherlock {
       }
 
       // check for open ranges (more than...)
-      if (ret.eventTitle.match(this.patterns.more_than_comparator)) {
+      if (ret.eventTitle.match(patterns.more_than_comparator)) {
         if ((start <= now && (!Watson.isSameDay(start, now) || str.match(/ago|old\b/)) &&
             !ret.eventTitle.match(/after|newer/i)) ||
             ret.eventTitle.match(/older|before/i)) {
@@ -323,10 +340,10 @@ export default class Sherlock {
         } else {
           ret.endDate = new Date(3000, 0, 1, 0, 0, 0, 0);
         }
-        ret.eventTitle = ret.eventTitle.replace(this.patterns.more_than_comparator, '');
+        ret.eventTitle = ret.eventTitle.replace(patterns.more_than_comparator, '');
       }
       // check for closed ranges (less than...)
-      else if (ret.eventTitle.match(this.patterns.less_than_comparator)) {
+      else if (ret.eventTitle.match(patterns.less_than_comparator)) {
         if (start <= now) {
           if (Watson.isSameDay(start, now) && !str.match(/ago|old\b/)) {
             // make an exception for "less than today" or "less than now"
@@ -337,7 +354,7 @@ export default class Sherlock {
           ret.endDate = new Date(start.getTime());
           ret.startDate = new Date(now.getTime());
         }
-        ret.eventTitle = ret.eventTitle.replace(this.patterns.less_than_comparator, '');
+        ret.eventTitle = ret.eventTitle.replace(patterns.less_than_comparator, '');
       }
     }
 
@@ -380,6 +397,8 @@ export default class Sherlock {
   // with properties: eventTitle, startDate, endDate, isAllDay
   // plus anything Watson adds on...
   parse(input, opts = {}) { // FIXME config?
+    const { patterns } = this._config;
+
     this.logger.debug('parse', input, opts)
     // check for null input
     if (input === null) input = '';
@@ -393,9 +412,9 @@ export default class Sherlock {
     const str = input; // result[0]
     const ret = {}; // result[1]
     // token the string to start and stop times
-    let tokens = opts.disableRanges ? [str.toLowerCase()] : str.toLowerCase().split(this.patterns.rangeSplitters);
+    let tokens = opts.disableRanges ? [str.toLowerCase()] : str.toLowerCase().split(patterns.rangeSplitters);
 
-    this.patterns.rangeSplitters.lastIndex = 0;
+    patterns.rangeSplitters.lastIndex = 0;
 
     // normalize all dates to 0 milliseconds
     date.setMilliseconds(0);
@@ -463,7 +482,7 @@ export default class Sherlock {
     // get capitalized version of title
     if (ret.eventTitle) {
       ret.eventTitle = ret.eventTitle.replace(/\$(?:DATE|TIME)\$/g, '');
-      let fillerWords = opts.disableRanges ? this.patterns.fillerWords2 : this.patterns.fillerWords;
+      let fillerWords = opts.disableRanges ? patterns.fillerWords2 : patterns.fillerWords;
       ret.eventTitle = ret.eventTitle.split(fillerWords)[0].trim();
       ret.eventTitle = ret.eventTitle.replace(/(?:^| )(?:\.|-$|by$|in$|at$|from$|on$|starts?$|for$|(?:un)?till?$|!|,|;)+/g, '').replace(/ +/g, ' ')
         .trim();

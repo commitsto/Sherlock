@@ -15,15 +15,15 @@ var Watson = function Watson() {
 
 exports.default = Watson;
 
-_defineProperty(Watson, "logger", function (_debug) {
-  console.log('Watson logger', _debug);
+_defineProperty(Watson, "log", function (_debug) {
   return {
     debug: function debug() {
       var _console;
 
       return _debug && (_console = console).log.apply(_console, arguments);
-    } // eslint-disable-line no-console
-
+    },
+    // eslint-disable-line no-console
+    silly: function silly() {}
   };
 });
 
@@ -256,7 +256,7 @@ _defineProperty(Watson, "changeMonth", function (month) {
 });
 
 _defineProperty(Watson, "changeDay", function (time, newDay, hasNext) {
-  Watson.logger().debug('changeDay', time, newDay, hasNext); // FIXME
+  Watson.log().debug('changeDay', time, newDay, hasNext); // FIXME
 
   var diff = 7 - time.getDay() + newDay; // If entering "last saturday" on a Saturday, for example,
   // diff will be 0 when it should be -7
@@ -274,7 +274,7 @@ _defineProperty(Watson, "changeDay", function (time, newDay, hasNext) {
   }
 
   var newTime = time.getDate() + diff;
-  Watson.logger().debug('setDate', diff, newTime); // FIXME
+  Watson.log().debug('setDate', diff, newTime); // FIXME
 
   time.setDate(newTime);
 });

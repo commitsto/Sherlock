@@ -1,9 +1,9 @@
 export default class Watson {
-  static logger = function(debug) {
-    console.log('Watson logger', debug);
+  static log = function(debug) {
     return {
       debug: (...msgs) => debug && console.log(...msgs), // eslint-disable-line no-console
-    }
+      silly: () => {},
+    };
   }
 
   /* eslint-disable max-len */
@@ -202,7 +202,7 @@ export default class Watson {
 
   // find the nearest future date that is on the given weekday
   static changeDay = function(time, newDay, hasNext) {
-    Watson.logger().debug('changeDay', time, newDay, hasNext); // FIXME
+    Watson.log().debug('changeDay', time, newDay, hasNext); // FIXME
     let diff = 7 - time.getDay() + newDay;
     // If entering "last saturday" on a Saturday, for example,
     // diff will be 0 when it should be -7
@@ -211,7 +211,7 @@ export default class Watson {
     if (hasNext === 'oxt') {diff += 7;}
 
     const newTime = time.getDate() + diff;
-    Watson.logger().debug('setDate', diff, newTime); // FIXME
+    Watson.log().debug('setDate', diff, newTime); // FIXME
     time.setDate(newTime);
   }
 
