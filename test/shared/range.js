@@ -68,7 +68,8 @@ export default (currentTime) => {
       start.setHours(0, 0, 0, 0);
       end.setHours(0, 0, 0, 0);
       now.setHours(0, 0, 0, 0);
-      if (end < now) {
+
+      if (end < now || start < now) {
         end.setMonth(end.getMonth() + 1);
         start.setMonth(start.getMonth() + 1);
       }

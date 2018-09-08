@@ -6,11 +6,10 @@
 <html>
   <head>
     <title>Sherlock.js - Unit Tests</title>
-    <script type="text/javascript" src="sherlock.js"></script>
-    <script type="text/javascript" src="watson.js"></script>
+    <script type="text/javascript" src="dist/sherlock.min.js"></script>
 
     <script type="text/javascript">
-      var debug = true;
+      Sherlock.config({ debug: true })
 
       // Run Sherlock from all of these reference dates in order to cover possible edge cases
       var dates = [
@@ -1945,7 +1944,7 @@
               Sherlocked.isAllDay == isAllDay);
 
         // Log any tests that fail in console
-        if (debug && !result) {
+        if (!result) {
           console.log("parsing on " + getNow() + "... " + str);
           Sherlocked.startDate = Sherlocked.startDate ? new Date(Sherlocked.startDate) : null;
           Sherlocked.endDate = Sherlocked.endDate ? new Date(Sherlocked.endDate) : null;
