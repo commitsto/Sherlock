@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "author": "Neil Gupta",
   "description": "Natural-language event parser for Javascript.",
-  "main": "src/sherlock.js",
+  "main": "dist/node/sherlock.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/neilgupta/Sherlock.git"
@@ -20,7 +20,10 @@
   "scripts": {
     "eslint": "eslint ./",
     "eslint:fix": "eslint ./ --fix",
-    "build": "babel src --out-dir dist",
+    "build": "npm run build:node && npm run build:browser && npm run build:browser:min",
+    "build:node": "babel src --out-dir dist/node",
+    "build:browser": "browserify build/browser.js -t [ babelify] > dist/sherlock.js",
+    "build:browser:min": "browserify build/browser.js -g uglifyify -t [ babelify] > dist/sherlock.min.js",
     "test": "MOCHA_FILE=tmp/test-results/mocha/results.xml NODE_ENV=test nyc mocha --require chai-autoload-plugins -u bdd-lazy-var/global -R mocha-multi --reporter-options dot=-,mocha-junit-reporter=- ./test/sherlock.js",
     "test:watch": "npm test -- --watch",
     "test:coverage": "nyc report --reporter=text-lcov > tmp/test-results/coverage.lcov"
@@ -28,14 +31,18 @@
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/polyfill": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "babel-plugin-istanbul": "^4.1.6",
+    "@babel/register": "^7.0.0",
+    "babel-plugin-istanbul": "^5.0.1",
+    "babelify": "^9.0.0",
     "bdd-lazy-var": "^2.4.2",
+    "browserify": "^16.2.2",
     "chai": "^4.1.2",
     "chai-autoload-plugins": "^0.1.0",
     "chai-datetime": "^1.5.0",
-    "codecov": "^3.0.1",
+    "codecov": "^3.1.0",
     "eslint": "^4.19.1",
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-mocha": "^5.1.0",
@@ -44,26 +51,25 @@
     "eslint-plugin-standard": "^3.1.0",
     "lodash": "^4.17.10",
     "mocha": "^5.1.1",
-    "mocha-junit-reporter": "^1.17.0",
+    "mocha-junit-reporter": "^1.18.0",
     "mocha-multi": "^1.0.1",
     "moment": "^2.22.2",
-    "nyc": "^11.7.1",
-    "sinon": "^5.0.4",
-    "sinon-chai": "^3.0.0"
+    "nyc": "^13.0.1",
+    "sinon": "^6.2.0",
+    "sinon-chai": "^3.0.0",
+    "uglifyify": "^5.0.1"
   },
   "babel": {
     "presets": [
-      "es2015-node6",
-      "stage-1"
+      [
+        "@babel/env",
+        {
+          "useBuiltIns": "entry"
+        }
+      ]
     ],
     "plugins": [
-      "transform-class-properties",
-      "transform-object-rest-spread",
-      "transform-decorators-legacy",
-      "transform-function-bind",
-      "syntax-async-functions",
-      "transform-async-to-generator",
-      "transform-regenerator"
+      "@babel/plugin-proposal-class-properties"
     ],
     "env": {
       "test": {
@@ -78,7 +84,13 @@
     "sourceMap": false,
     "instrument": false,
     "require": [
-      "babel-core/register"
+      "@babel/register"
+    ],
+    "include": [
+      "src/"
     ]
+  },
+  "dependencies": {
+    "babel-eslint": "^9.0.0"
   }
 }

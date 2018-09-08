@@ -1,9 +1,3 @@
-// FIXME
-const debug = false;
-const logger = {
-  log: (...msgs) => debug && console.log(...msgs),
-};
-
 /*
  * Sherlock
  * Copyright (c) 2017 Neil Gupta
@@ -11,16 +5,20 @@ const logger = {
 
 import Watson from './watson';
 
-class Sherlock {
+export default class Sherlock {
   nowDate = new Date()
   patterns = Watson.patterns
-  config = {
-    disableRanges: false,
+  _config = {
+    disableRanges: false, // FIXME
+    debug: false,
   }
+  logger = Watson.logger(this._config.debug)
 
   config(newConfig) {
+    console.log('Sherlock config', this._config, newConfig)
     if (typeof newConfig === 'object') {
-      this.config = newConfig;
+      this._config = newConfig; // FIXME
+      this.logger = Watson.logger(this._config.debug) // FIXME
     }
     return null;
   }
@@ -158,7 +156,7 @@ class Sherlock {
   }
 
   matchDate(str, time, startTime) {
-    logger.log('matchDate', time, str)
+    this.logger.debug('matchDate', time, str)
 
     let match;
     if (match = str.match(this.patterns.monthDay)) {
@@ -185,7 +183,7 @@ class Sherlock {
       } else {time.setMonth(match[1] - 1, match[2]);}
       return match[0];
     } else if (match = str.match(this.patterns.oxtDays) || str.match(this.patterns.oxtDaysUK)) {
-      logger.log('HERE!', this.patterns.oxtDays, time, match)
+      this.logger.debug('HERE!', this.patterns.oxtDays, time, match)
       switch (match[1].substr(0, 3)) {
         case 'sun':
           Watson.changeDay(time, 0, 'oxt');
@@ -298,7 +296,7 @@ class Sherlock {
         start.setFullYear(start.getFullYear() + 1);
       }
     } else if (start) {
-      logger.log('makeAdjustments to "start"', start, now)
+      this.logger.debug('makeAdjustments to "start"', start, now)
       if (start <= now && !start.hasYear && !str.match(/was|ago|old\b/)) {
         if (Watson.isSameDay(start, now) && !isAllDay) {
           if (start.hasMeridian || start.getHours() < 19)
@@ -343,7 +341,7 @@ class Sherlock {
       }
     }
 
-    logger.log('end making adjustments', ret)
+    this.logger.debug('end making adjustments', ret)
   }
 
   parser(str, time, startTime) {
@@ -353,14 +351,14 @@ class Sherlock {
       strNummed = Watson.strToNum(str);
 
 
-    logger.log('time before', time)
+    this.logger.debug('time before', time)
     // parse date
     if (dateMatch = this.matchDate(strNummed, time, startTime)) {
       strNummed = strNummed.replace(new RegExp(dateMatch), '');
       str = str.replace(new RegExp(Watson.numToStr(dateMatch)), '$DATE$');
     }
 
-    logger.log('time after', time)
+    this.logger.debug('time after', time)
 
     // parse time
     if (timeMatch = this.matchTime(strNummed, time, startTime)) {
@@ -381,8 +379,8 @@ class Sherlock {
   // parses a string and returns an object defining the basic event
   // with properties: eventTitle, startDate, endDate, isAllDay
   // plus anything Watson adds on...
-  parse(input, opts = {}) {
-    logger.log('parse', input, opts)
+  parse(input, opts = {}) { // FIXME config?
+    this.logger.debug('parse', input, opts)
     // check for null input
     if (input === null) input = '';
 
@@ -405,7 +403,7 @@ class Sherlock {
     while (!ret.startDate) {
       // parse the start date
       if ((result = this.parser(tokens[0], date, null)) !== null) {
-        logger.log('parser result', result, date)
+        this.logger.debug('parser result', result, date)
 
         if (result.isAllDay)
         // set to midnight
@@ -481,5 +479,3 @@ class Sherlock {
     return ret;
   }
 }
-
-export default new Sherlock();
