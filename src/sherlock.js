@@ -3,28 +3,29 @@
  * Copyright (c) 2017 Neil Gupta
  */
 
-import Watson from './watson';
+import watson from './watson';
 
 export default class Sherlock {
-  constructor({ config = {} } = {}) {
-    this.config(config);
+  constructor({ config, Watson } = {}) {
+    this.config({ config, Watson });
     this.logger.debug('new Sherlock!', this);
   }
 
-  config(newConfig) {
-    if (typeof newConfig === 'object') {
+  config({ config = {}, Watson = Watson }) {
+    if (typeof config === 'object') {
       const {
         currentTime = new Date(),
         debug = false,
         disableRanges = false,
         patterns = {},
-      } = newConfig;
+      } = config;
 
       this._config = {
         ...this._config,
         currentTime,
         debug,
         disableRanges, // FIXME implement this
+        Watson,
         logger: Watson.log(debug),
         patterns: Object.keys(patterns).length !== 0 ? patterns : Watson.patterns,
       };
@@ -171,7 +172,7 @@ export default class Sherlock {
   matchDate(str, time, startTime) {
     this.logger.debug('matchDate', time, str)
 
-    const { patterns } = this._config;
+      const { patterns, Watson } = this._config;
 
     let match;
     if (match = str.match(patterns.monthDay)) {
@@ -292,7 +293,7 @@ export default class Sherlock {
 
   // Make some intelligent assumptions of what was meant, even when given incomplete information
   makeAdjustments(start, end, isAllDay, str, ret, now = this.getNow()) {
-    const { patterns } = this._config;
+    const { patterns, Watson } = this._config;
 
     if (end) {
       if (start > end && end > now && Watson.isSameDay(start, end) && Watson.isSameDay(start, now)) {
@@ -362,6 +363,8 @@ export default class Sherlock {
   }
 
   parser(str, time, startTime) {
+    const { Watson } = this._config;
+
     let ret = {},
       dateMatch = false,
       timeMatch = false,
@@ -397,9 +400,9 @@ export default class Sherlock {
   // with properties: eventTitle, startDate, endDate, isAllDay
   // plus anything Watson adds on...
   parse(input, opts = {}) { // FIXME config?
-    const { patterns } = this._config;
+    const { patterns, Watson } = this._config;
 
-    this.logger.debug('parse', input, opts)
+    this.logger.debug('parse', input, opts);
     // check for null input
     if (input === null) input = '';
 
